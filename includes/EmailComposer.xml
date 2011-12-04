@@ -1,0 +1,31 @@
+<rfapp>
+	<views>
+		<view>
+			<property name="title-bar-visible">NO</property>
+			<property name="padding">0</property>
+			<widgets>
+				<RFEmailWidget id="mailWidget">
+					<property name="width">100%</property>
+					<property name="height">100%</property>
+					<property name="subject">[form:sharing-subject]</property>
+					<property name="message-text">[form:sharing-text]</property>
+					<property name="to">[form:sharing-to]</property>
+					<actions>
+						<alert on="send-success">
+							<property name="message">Your Email has been sent.</property>
+						</alert>
+						<navigate on="send-success">
+							<property name="navigation-stack-type">pop</property>
+						</navigate>
+						<alert on="send-fail">
+							<property name="message">Your Email failed to send. Please try again.</property>
+						</alert>
+						<navigate on="canceled">
+							<property name="navigation-stack-type">pop</property>
+						</navigate>
+					</actions>
+				</RFEmailWidget>
+			</widgets>
+		</view>
+	</views>
+</rfapp>

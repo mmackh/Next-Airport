@@ -1,0 +1,526 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<rfapp id="XXX-XXXX" appkey="XXXXXXXXXXXXXXXXXX" appurl="">
+  <property name="use-standard-tab-bar">YES</property>
+  <property name="enable-location-services">YES</property>
+  <property name="show-status-bar">YES</property>
+  <property name="app-name">Next Airport</property>
+  <property name="allow-landscape-orientation">NO</property>
+  <views>
+    <view>
+      <property name="title">Next Airport</property>
+      <property name="padding">0</property>
+      <property name="title-bar-visible">NO</property>
+      <property name="top-padding">75</property>
+      <datasources>
+        <RFXMLDataProvider id="mapdata">
+          <property name="hide-activity-indicator">YES</property>
+          <property name="auto-load">YES</property>
+          <property name="auth-method">HTTP</property>
+          <property name="data-location">https://maps.googleapis.com/maps/api/place/search/xml</property>
+          <property name="method">GET</property>
+          <submit_values>
+            <property name="location">[app:user-lat],[app:user-lon]</property>
+            <property name="radius" if="'[session:radiusvalue]'==''">200000</property>
+            <property name="radius" if="'[session:radiusvalue]'!=''">[session:radiusvalue]000</property>
+            <property name="name">Airport</property>
+            <property name="sensor">true</property>
+            <property name="key">XXXXXXXXXXXXXX</property>
+          </submit_values>
+          <actions>
+            <alert on="failed">
+              <property name="title">Search Failed</property>
+              <property name="message">Please connect to the Internet</property>
+              <property name="button-text">Continue</property>
+            </alert>
+          </actions>
+        </RFXMLDataProvider>
+      </datasources>
+      <widgets>
+        <RFImageWidget>
+          <property name="image">resources/background.jpg</property>
+          <property name="layout-type">absolute</property>
+          <property name="width">100%</property>
+          <property name="height">100%</property>
+          <property name="allow-stretch">YES</property>
+        </RFImageWidget>
+        <RFLayoutWidget id="rfTitleBar">
+          <property name="padding">0</property>
+          <property name="width">100%</property>
+          <property name="height">51</property>
+          <property name="layout-type">float</property>
+          <widgets>
+            <RFLayoutWidget>
+              <property name="width">100%</property>
+              <property name="layout-flow">horizontal</property>
+              <property name="height">51</property>
+              <property name="layout-type">float</property>
+              <widgets>
+                <RFImageWidget>
+                  <property name="image">resources/titlebar.png</property>
+                  <property name="layout-type">absolute</property>
+                  <property name="top-position">0</property>
+                  <property name="left-position">0</property>
+                  <property name="width">100%</property>
+                  <property name="height">51</property>
+                  <property name="allow-stretch">YES</property>
+                </RFImageWidget>
+                <RFImageWidget>
+                  <actions>
+                    <navigate on="touch">
+                      <property name="navigation-stack-type">replace</property>
+                      <property name="to">dir.xml</property>
+                    </navigate>
+                  </actions>
+                  <property name="image">resources/name.png</property>
+                  <property name="horizontal-alignment">center</property>
+                  <property name="vertical-alignment">middle</property>
+                  <property name="layout-type">float</property>
+                  <property name="width">180</property>
+                  <property name="height">50</property>
+                  <property name="animate-touch">NO</property>
+                </RFImageWidget>
+              </widgets>
+            </RFLayoutWidget>
+          </widgets>
+        </RFLayoutWidget>
+        <!-- [titlebar 126 end] -->
+        <RFLayoutWidget>
+          <property name="top-position">20</property>
+          <property name="horizontal-alignment">center</property>
+          <property name="width">95%</property>
+          <property name="height">80%</property>
+          <property name="visible">YES</property>
+          <property name="border-width">1</property>
+          <property name="border-color">#CCCCCC</property>
+          <property name="background-color">#F5F5F5</property>
+          <widgets>
+            <RFMapWidget id="mapwidget">
+              <actions>
+                <set on="touch">
+                  <property name="save-locally">YES</property>
+                  <values>
+                    <property name="latlook">[data:row("geometry/location/lat")]</property>
+                    <property name="lnglook">[data:row("geometry/location/lng")]</property>
+                  </values>
+                </set>
+                <navigate on="touch">
+                  <property name="to">dir.xml</property>
+                  <property name="navigation-stack-type">replace</property>
+                </navigate>
+              </actions>
+              <property name="border-width">1</property>
+              <property name="border-color">#CCCCCC</property>
+              <property name="horizontal-alignment">center</property>
+              <property name="layout-type">absolute</property>
+              <property name="width">100%</property>
+              <property name="height">100%</property>
+              <property name="padding">7</property>
+              <property name="bottom-margin">0</property>
+              <property name="show-user-location">YES</property>
+              <property name="row-data-id">mapdata</property>
+              <property name="row-data-path">//result</property>
+              <property name="item-latitude">[data:row("geometry/location/lat")]</property>
+              <property name="item-longitude">[data:row("geometry/location/lng")]</property>
+              <property name="item-title">[data:row("name")]</property>
+              <property name="item-subtitle">[data:row("vicinity")]</property>
+              <property name="zoom-to-fit">YES</property>
+            </RFMapWidget>
+          </widgets>
+        </RFLayoutWidget>
+        <RFImageWidget>
+          <property name="top-margin">-10</property>
+          <property name="image">resources/shadow.png</property>
+          <property name="width">100%</property>
+          <property name="allow-stretch">YES</property>
+        </RFImageWidget>
+        <RFLayoutWidget id="controls">
+          <property name="width">100%</property>
+          <property name="bottom-margin">8</property>
+          <property name="vertical-alignment">bottom</property>
+          <property name="layout-type">float</property>
+          <widgets>
+            <RFLayoutWidget>
+              <property name="width">100%</property>
+              <property name="layout-flow">horizontal</property>
+              <widgets>
+                <RFImageWidget id="info">
+                  <actions>
+                    <alert on="touch">
+                      <property name="title">Greetings!</property>
+                      <property name="message">Thank you for using Next Airport, now how about giving it a rating in the App Store? Should you have any additional questions / feature suggestions, please do not hesitate to get in touch via email: info@inoads.com</property>
+                      <property name="button-text">Thank You</property>
+                    </alert>
+                  </actions>
+                  <property name="image">resources/info.png</property>
+                  <property name="layout-type">float</property>
+                  <property name="left-margin">10</property>
+                  <property name="width">20</property>
+                  <property name="height">20</property>
+                  <property name="animate-touch">NO</property>
+                  <property name="vertical-alignment">bottom</property>
+                </RFImageWidget>
+                <RFImageWidget id="search">
+                  <actions>
+                    <load_datasource on="touch">
+                      <property name="datasource-id">mapdata</property>
+                    </load_datasource>
+                    <modify on="touch">
+                      <property name="widget-id">search</property>
+                      <property name="duration">0.4</property>
+                      <values>
+                        <property name="alpha">0.0</property>
+                      </values>
+                    </modify>
+                    <modify on="touch">
+                      <property name="widget-id">searchison</property>
+                      <property name="duration">0.4</property>
+                      <values>
+                        <property name="alpha">1.0</property>
+                      </values>
+                    </modify>
+                  </actions>
+                  <property name="animate-touch">NO</property>
+                  <property name="image">resources/gobutton.png</property>
+                  <property name="width">117</property>
+                  <property name="height">50</property>
+                  <property name="layout-type">float</property>
+                  <property name="horizontal-alignment">center</property>
+                </RFImageWidget>
+                <RFImageWidget id="searchison">
+                  <actions>
+                    <modify on="touch">
+                      <property name="widget-id">search</property>
+                      <property name="duration">0.4</property>
+                      <values>
+                        <property name="alpha">1.0</property>
+                      </values>
+                    </modify>
+                    <modify on="touch">
+                      <property name="widget-id">searchison</property>
+                      <property name="duration">0.4</property>
+                      <values>
+                        <property name="alpha">0.0</property>
+                      </values>
+                    </modify>
+                  </actions>
+                  <property name="alpha">0.0</property>
+                  <property name="animate-touch">NO</property>
+                  <property name="image">resources/gobutton-blue.png</property>
+                  <property name="width">117</property>
+                  <property name="height">50</property>
+                  <property name="layout-type">float</property>
+                  <property name="horizontal-alignment">center</property>
+                </RFImageWidget>
+                <RFImageWidget id="settings">
+                  <actions>
+                    <modify on="touch">
+                      <property name="widget-id">controls</property>
+                      <property name="duration">0.4</property>
+                      <values>
+                        <property name="left-position">-100%</property>
+                      </values>
+                    </modify>
+                    <modify on="touch">
+                      <property name="widget-id">options</property>
+                      <property name="duration">0.7</property>
+                      <values>
+                        <property name="left-position">0</property>
+                      </values>
+                    </modify>
+                  </actions>
+                  <property name="image">resources/settings.png</property>
+                  <property name="layout-type">float</property>
+                  <property name="horizontal-alignment">right</property>
+                  <property name="vertical-alignment">bottom</property>
+                  <property name="right-margin">10</property>
+                  <property name="width">20</property>
+                  <property name="height">20</property>
+                  <property name="animate-touch">NO</property>
+                </RFImageWidget>
+              </widgets>
+            </RFLayoutWidget>
+          </widgets>
+        </RFLayoutWidget>
+        <RFLayoutWidget id="options">
+          <property name="left-position">100%</property>
+          <property name="width">100%</property>
+          <property name="bottom-margin">5</property>
+          <property name="vertical-alignment">bottom</property>
+          <property name="layout-type">absolute</property>
+          <widgets>
+            <RFLayoutWidget>
+              <property name="width">100%</property>
+              <property name="layout-flow">horizontal</property>
+              <widgets>
+                <RFImageWidget id="searchradius">
+                  <actions>
+                    <modify on="touch">
+                      <property name="widget-id">radiuspopup</property>
+                      <property name="duration">0.3</property>
+                      <values>
+                        <property name="top-position">0%</property>
+                      </values>
+                    </modify>
+                    <function on="touch">
+                      <property name="function-name">show-keyboard</property>
+                      <property name="widget-id">radiusinput</property>
+                    </function>
+                  </actions>
+                  <property name="left-margin">15</property>
+                  <property name="animate-touch">NO</property>
+                  <property name="image" if="'[session:radiusvalue]'==''">resources/searchradius.png</property>
+                  <property name="image" if="'[session:radiusvalue]'!=''">resources/searchradius-blue.png</property>
+                  <property name="width">117</property>
+                  <property name="height">50</property>
+                  <property name="layout-type">float</property>
+                  <property name="horizontal-alignment">left</property>
+                </RFImageWidget>
+                <RFLayoutWidget id="gocontrols">
+                  <property name="width">100%</property>
+                  <property name="height">100%</property>
+                  <property name="layout-type">absolute</property>
+                  <actions>
+                    <modify on="touch">
+                      <property name="widget-id">controls</property>
+                      <property name="duration">0.7</property>
+                      <values>
+                        <property name="left-position">0%</property>
+                      </values>
+                    </modify>
+                    <modify on="touch">
+                      <property name="widget-id">options</property>
+                      <property name="duration">0.4</property>
+                      <values>
+                        <property name="left-position">100%</property>
+                      </values>
+                    </modify>
+                  </actions>
+                  <widgets>
+                  </widgets>
+                </RFLayoutWidget>
+                <RFImageWidget id="directory">
+                  <actions>
+                    <navigate on="touch">
+                      <property name="navigation-stack-type">replace</property>
+                      <property name="to">dir.xml</property>
+                    </navigate>
+                  </actions>
+                  <property name="right-margin">15</property>
+                  <property name="animate-touch">NO</property>
+                  <property name="image">resources/directory.png</property>
+                  <property name="width">117</property>
+                  <property name="height">50</property>
+                  <property name="layout-type">float</property>
+                  <property name="horizontal-alignment">right</property>
+                </RFImageWidget>
+              </widgets>
+            </RFLayoutWidget>
+          </widgets>
+        </RFLayoutWidget>
+        <RFLayoutWidget id="radiuspopup">
+          <property name="width">100%</property>
+          <property name="height">100%</property>
+          <property name="layout-type">absolute</property>
+          <property name="top-position">-100%</property>
+          <property name="background-color">#000000A3</property>
+          <widgets>
+            <RFTextInputWidget id="radiusinput">
+              <actions>
+                <modify on="lost-focus">
+                  <property name="widget-id">radiuspopup</property>
+                  <property name="duration">0.3</property>
+                  <values>
+                    <property name="top-position">-100%</property>
+                  </values>
+                </modify>
+                <function on="lost-focus">
+                  <property name="function-name">hide-keyboard</property>
+                  <property name="widget-id">radiusinput</property>
+                </function>
+                <set on="lost-focus">
+                  <property name="save-locally">YES</property>
+                  <values>
+                    <property name="radiusvalue">[form:radiusinput]</property>
+                  </values>
+                </set>
+                <refresh on="lost-focus">
+                  <property name="id">searchradius</property>
+                </refresh>
+                <modify on="lost-focus">
+                  <property name="widget-id">controls</property>
+                  <property name="duration">0.7</property>
+                  <values>
+                    <property name="left-position">0%</property>
+                  </values>
+                </modify>
+                <modify on="lost-focus">
+                  <property name="widget-id">options</property>
+                  <property name="duration">0.4</property>
+                  <values>
+                    <property name="left-position">100%</property>
+                  </values>
+                </modify>
+                <load_datasource on="lost-focus">
+                  <property name="datasource-id">mapdata</property>
+                </load_datasource>
+                <modify on="lost-focus">
+                  <property name="widget-id">search</property>
+                  <property name="duration">0.4</property>
+                  <values>
+                    <property name="alpha">0.0</property>
+                  </values>
+                </modify>
+                <modify on="lost-focus">
+                  <property name="widget-id">searchison</property>
+                  <property name="duration">0.4</property>
+                  <values>
+                    <property name="alpha">1.0</property>
+                  </values>
+                </modify>
+              </actions>
+              <property name="height">35</property>
+              <property name="layout-type">float</property>
+              <property name="top-position">30%</property>
+              <property name="horizontal-alignment">center</property>
+              <property name="width">100%</property>
+              <property name="text">[session:radiusvalue]</property>
+              <property name="placeholder-text">Define a radius in Kilometers</property>
+              <property name="keyboard-type">number</property>
+              <property name="justification">center</property>
+              <property name="font">HelveticaNeue:16.0</property>
+            </RFTextInputWidget>
+            <RFImageWidget id="deny">
+              <actions>
+                <modify on="touch">
+                  <property name="widget-id">radiuspopup</property>
+                  <property name="duration">0.3</property>
+                  <values>
+                    <property name="top-position">-100%</property>
+                  </values>
+                </modify>
+                <modify on="touch">
+                  <property name="widget-id">radiusinput</property>
+                  <values>
+                    <property name="text">[session:emptyvalue]</property>
+                  </values>
+                </modify>
+                <function on="touch">
+                  <property name="function-name">hide-keyboard</property>
+                  <property name="widget-id">radiusinput</property>
+                </function>
+                <set on="touch">
+                  <property name="save-locally">YES</property>
+                  <values>
+                    <property name="radiusvalue">[session:emptystring]</property>
+                  </values>
+                </set>
+                <refresh on="touch">
+                  <property name="id">searchradius</property>
+                </refresh>
+                <modify on="touch">
+                  <property name="widget-id">controls</property>
+                  <property name="duration">0.7</property>
+                  <values>
+                    <property name="left-position">0%</property>
+                  </values>
+                </modify>
+                <modify on="touch">
+                  <property name="widget-id">options</property>
+                  <property name="duration">0.4</property>
+                  <values>
+                    <property name="left-position">100%</property>
+                  </values>
+                </modify>
+                <modify on="touch">
+                  <property name="widget-id">search</property>
+                  <property name="duration">0.4</property>
+                  <values>
+                    <property name="alpha">1.0</property>
+                  </values>
+                </modify>
+                <modify on="touch">
+                  <property name="widget-id">searchison</property>
+                  <property name="duration">0.4</property>
+                  <values>
+                    <property name="alpha">0.0</property>
+                  </values>
+                </modify>
+              </actions>
+              <property name="image">resources/deny.png</property>
+              <property name="layout-type">float</property>
+              <property name="horizontal-alignment">right</property>
+              <property name="top-position">40%</property>
+              <property name="right-margin">65</property>
+              <property name="width">40</property>
+              <property name="height">40</property>
+              <property name="animate-touch">NO</property>
+            </RFImageWidget>
+            <RFImageWidget id="confirm">
+              <actions>
+                <modify on="touch">
+                  <property name="widget-id">radiuspopup</property>
+                  <property name="duration">0.3</property>
+                  <values>
+                    <property name="top-position">-100%</property>
+                  </values>
+                </modify>
+                <function on="touch">
+                  <property name="function-name">hide-keyboard</property>
+                  <property name="widget-id">radiusinput</property>
+                </function>
+                <set on="touch">
+                  <property name="save-locally">YES</property>
+                  <values>
+                    <property name="radiusvalue">[form:radiusinput]</property>
+                  </values>
+                </set>
+                <refresh on="touch">
+                  <property name="id">searchradius</property>
+                </refresh>
+                <modify on="touch">
+                  <property name="widget-id">controls</property>
+                  <property name="duration">0.7</property>
+                  <values>
+                    <property name="left-position">0%</property>
+                  </values>
+                </modify>
+                <modify on="touch">
+                  <property name="widget-id">options</property>
+                  <property name="duration">0.4</property>
+                  <values>
+                    <property name="left-position">100%</property>
+                  </values>
+                </modify>
+                <load_datasource on="touch">
+                  <property name="datasource-id">mapdata</property>
+                </load_datasource>
+                <modify on="touch">
+                  <property name="widget-id">search</property>
+                  <property name="duration">0.4</property>
+                  <values>
+                    <property name="alpha">0.0</property>
+                  </values>
+                </modify>
+                <modify on="touch">
+                  <property name="widget-id">searchison</property>
+                  <property name="duration">0.4</property>
+                  <values>
+                    <property name="alpha">1.0</property>
+                  </values>
+                </modify>
+              </actions>
+              <property name="image">resources/confirm.png</property>
+              <property name="layout-type">float</property>
+              <property name="horizontal-alignment">right</property>
+              <property name="top-position">40%</property>
+              <property name="right-margin">15</property>
+              <property name="width">40</property>
+              <property name="height">40</property>
+              <property name="animate-touch">NO</property>
+            </RFImageWidget>
+          </widgets>
+        </RFLayoutWidget>
+      </widgets>
+    </view>
+  </views>
+</rfapp>
