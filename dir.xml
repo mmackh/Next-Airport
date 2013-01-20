@@ -1,764 +1,766 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <rfapp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://developer.redfoundry.com/rfml.xsd">
-  <views>
-    <view>
-      <property name="title-bar-visible">NO</property>
-      <property name="padding">0</property>
-      <property name="top-padding">85</property>
-      <property name="enable-vertical-scroll">NO</property>
-      <property name="background-image">resources/background.jpg</property>
-      <actions>
-        <load_datasource on="will-appear">
-          <property name="datasource-id" if="'[session:latlook]'!=''">directory</property>
-        </load_datasource>
-      </actions>
-      <datasources>
-        <RFXMLDataProvider id="recentitem">
-          <property name="data"><![CDATA[<recent>
+    <views>
+        <view>
+            <property name="title-bar-visible">NO</property>
+            <property name="padding">0</property>
+            <property name="top-padding">85</property>
+            <property name="enable-vertical-scroll">NO</property>
+            <property name="background-image">resources/background.jpg</property>
+            <actions>
+                <load_datasource on="will-appear">
+                    <property name="datasource-id" if="'[session:latlook]'!=''">directory</property>
+                </load_datasource>
+            </actions>
+            <datasources>
+                <RFXMLDataProvider id="recentitem">
+                    <property name="data"><![CDATA[<recent>
                         [session:recentItems]
                         </recent>]]></property>
-        </RFXMLDataProvider>
-        <RFXMLDataProvider id="gettimeinfo">
-          <property name="hide-activity-indicator">YES</property>
-          <property name="auto-load">NO</property>
-          <property name="data-location">http://api.geonames.org/timezone</property>
-          <property name="method">GET</property>
-          <submit_values>
-            <property name="lat">[session:LATsave]</property>
-            <property name="lng">[session:LNGsave]</property>
-            <property name="username">inoads</property>
-          </submit_values>
-          <actions>
-            <set on="success" if="'[data:getmetar('//geonames/observation/ICAO')]'!=''">
-              <property name="save-locally">YES</property>
-              <values>
-                <property name="timeinfoRSave">GMT Offset: [eval:("var timezone = [data:gettimeinfo("//geonames/timezone/gmtOffset")]; timezoneadj = timezone.toFixed(0); timezoneadj")] from [data:gettimeinfo("//geonames/timezone/timezoneId")]                        Sunrise: [data:gettimeinfo("//geonames/timezone/sunrise")]   Sunset: [data:gettimeinfo("//geonames/timezone/sunset")]</property>
-              </values>
-            </set>
-          </actions>
-        </RFXMLDataProvider>
-      <!--  <RFHTMLDataProvider id="gettaf">
-          <property name="hide-activity-indicator">YES</property>
-          <property name="auto-load">NO</property>
-          <property name="data-location">http://weather.noaa.gov/pub/data/forecasts/shorttaf/stations/EGSS.TXT</property>
-          <property name="method">GET</property>
-          <actions>
-            <alert on="success">
-              <property name="message">[data:gettaf()]</property>
-              <property name="button-text">Continue</property>
-            </alert>
-            <set on="success" if="'[data:gettaf('[/0-9aA-z: ]')]'!=''">
-              <property name="save-locally">YES</property>
-              <values>
-                <property name="TAFSave">[data:gettaf('*')]</property>
-              </values>
-            </set>
-          </actions>
-        </RFHTMLDataProvider> -->
-        <RFXMLDataProvider id="getmetar">
-          <property name="hide-activity-indicator">YES</property>
-          <property name="auto-load">NO</property>
-          <property name="data-location">http://api.geonames.org/weatherIcaoXML</property>
-          <property name="method">GET</property>
-          <submit_values>
-            <property name="ICAO">[data:directory("//current_observation/station_id")]</property>
-            <property name="username">inoads</property>
-          </submit_values>
-          <actions>
-            <refresh on="load-finished">
-              <property name="id">recentitem</property>
-              <property name="widget-id">searchrepeater</property>
-              <property name="widget-id">searchrepeatertext</property>
-            </refresh>
-            <set on="success" if="'[data:getmetar('//geonames/observation/ICAO')]'!=''">
-              <property name="save-locally">YES</property>
-              <values>
-                <property name="METARSave">[data:getmetar("//geonames/observation/observation")]</property>
-                <property name="ICAOSave">[data:getmetar("//geonames/observation/ICAO")]</property>
-                <property name="LATsave">[data:getmetar("//geonames/observation/lat")]</property>
-                <property name="LNGsave">[data:getmetar("//geonames/observation/lng")]</property>
-                <property name="recentItems"><![CDATA[<item><]]>![CDATA[[data:getmetar("//geonames/observation/ICAO")]]]<![CDATA[></item>[eval:("'[session:recentItems]'.replace('<item><]]>![CDATA[[data:getmetar("//geonames/observation/ICAO")]]]<![CDATA[></item>', '');")]]]></property>
-              </values>
-            </set>
-            <load_datasource on="success">
-              <property name="datasource-id">gettimeinfo</property>
-            </load_datasource>
-            <load_datasource on="success">
-              <property name="datasource-id">gettaf</property>
-            </load_datasource>
-            <modify on="success">
-              <property name="widget-id">location</property>
-              <values>
-                <property name="text">[data:getmetar("//geonames/observation/stationName")], [data:getmetar("//geonames/observation/countryCode")]</property>
-              </values>
-            </modify>
-            <modify on="success">
-              <property name="widget-id">name</property>
-              <values>
-                <property name="text">[data:getmetar("//geonames/observation/ICAO")] @ [eval:("var elvadj = 0; var elv = [data:getmetar("//geonames/observation/elevation")] * 3.28; elvadj = elv.toFixed(0); elvadj")]ft</property>
-              </values>
-            </modify>
-            <modify on="success">
-              <property name="widget-id">time</property>
-              <values>
-                <property name="text">Updated on [data:getmetar("//geonames/observation/observationTime")]</property>
-              </values>
-            </modify>
-            <modify on="success">
-              <property name="widget-id">temp</property>
-              <values>
-                <property name="text">[data:getmetar("//geonames/observation/temperature")]°C / [eval:("var tempf = 0; var tempc = [data:getmetar("//geonames/observation/temperature")] * 1.8 + 32; tempf = tempc.toFixed(0); tempf")]°F</property>
-              </values>
-            </modify>
-            <modify on="success">
-              <property name="widget-id">dewpoint</property>
-              <values>
-                <property name="text">[data:getmetar("//geonames/observation/dewPoint")]°C / [eval:("var dewf = 0; var dewc = [data:getmetar("//geonames/observation/dewPoint")] * 1.8 + 32; dewf = dewc.toFixed(0); dewf")]°F</property>
-              </values>
-            </modify>
-            <modify on="success">
-              <property name="widget-id">clouds</property>
-              <values>
-                <property name="text">[data:getmetar("//geonames/observation/clouds")]</property>
-              </values>
-            </modify>
-            <modify on="success">
-              <property name="widget-id">windspeed</property>
-              <values>
-                <property name="text">[data:getmetar("//geonames/observation/windSpeed")] knots</property>
-              </values>
-            </modify>
-            <modify on="success">
-              <property name="widget-id">winddir</property>
-              <values>
-                <property name="text">[data:getmetar("//geonames/observation/windDirection")]°</property>
-              </values>
-            </modify>
-          </actions>
-        </RFXMLDataProvider>
-        <RFXMLDataProvider id="directory">
-          <property name="hide-activity-indicator">YES</property>
-          <property name="auto-load">NO</property>
-          <property name="auth-method">HTTP</property>
-          <property name="data-location">http://api.wunderground.com/auto/wui/geo/WXCurrentObXML/index.xml</property>
-          <property name="method">GET</property>
-          <submit_values>
-            <property name="query">[form:code]</property>
-          </submit_values>
-          <actions>
-            <alert on="failed">
-              <property name="title">Search Failed</property>
-              <property name="message">Please connect to the Internet</property>
-              <property name="button-text">Continue</property>
-            </alert>
-            <set on="success">
-              <property name="save-locally">YES</property>
-              <values>
-                <property name="latlook">[session:emptyvalue]</property>
-                <property name="lnglook">[session:emptyvalue]</property>
-              </values>
-            </set>
-            <load_datasource on="success">
-              <property name="datasource-id" if="'[data:directory('//current_observation/station_id')]'!=''">getmetar</property>
-            </load_datasource>
-            <modify on="success">
-              <property name="widget-id">code</property>
-              <values>
-                <property name="text">[session:emptyvalue]</property>
-              </values>
-            </modify>
-            <alert on="success">
-              <property name="enabled" if="'[data:directory('//current_observation/station_id')]'!=''">NO</property>
-              <property name="title">No entries found</property>
-              <property name="message">Please try being more specific. Also, use ICAO instead of IATA codes.</property>
-              <property name="button-text">Continue</property>
-            </alert>
-          </actions>
-        </RFXMLDataProvider>
-      </datasources>
-      <widgets>
-        <RFLayoutWidget id="rfTitleBar">
-          <property name="padding">0</property>
-          <property name="width">100%</property>
-          <property name="height">51</property>
-          <property name="layout-type">float</property>
-          <widgets>
-            <RFLayoutWidget>
-              <property name="width">100%</property>
-              <property name="layout-flow">horizontal</property>
-              <property name="height">51</property>
-              <widgets>
-                <RFImageWidget>
-                  <property name="image">resources/titlebar.png</property>
-                  <property name="layout-type">absolute</property>
-                  <property name="top-position">0</property>
-                  <property name="left-position">0</property>
-                  <property name="width">100%</property>
-                  <property name="height">51</property>
-                  <property name="allow-stretch">YES</property>
-                </RFImageWidget>
-                <RFImageWidget>
-                  <actions>
-                    <navigate on="touch">
-                      <property name="navigation-stack-type">replace</property>
-                      <property name="to">RFAppConfig.xml</property>
-                    </navigate>
-                  </actions>
-                  <property name="image">resources/namedir.png</property>
-                  <property name="horizontal-alignment">center</property>
-                  <property name="vertical-alignment">middle</property>
-                  <property name="layout-type">float</property>
-                  <property name="width">222</property>
-                  <property name="height">50</property>
-                  <property name="animate-touch">NO</property>
-                </RFImageWidget>
-              </widgets>
-            </RFLayoutWidget>
-          </widgets>
-        </RFLayoutWidget>
-        <RFLayoutWidget>
-          <property name="top-position">51</property>
-          <property name="width">100%</property>
-          <property name="height">45</property>
-          <property name="vertical-alignment">top</property>
-          <property name="layout-type">float</property>
-          <widgets>
-            <RFLayoutWidget>
-              <property name="width">100%</property>
-              <property name="layout-flow">horizontal</property>
-              <property name="height">40</property>
-              <widgets>
-                <RFImageWidget>
-                  <property name="image">resources/searchbg.png</property>
-                  <property name="layout-type">absolute</property>
-                  <property name="width">100%</property>
-                  <property name="height">40</property>
-                  <property name="allow-stretch">YES</property>
-                </RFImageWidget>
-                <RFTextInputWidget id="code">
-                  <actions>
-                    <load_datasource on="lost-focus">
-                      <property name="datasource-id" if="'[form:code]'!=''">directory</property>
-                    </load_datasource>
-                    <alert on="lost-focus">
-                      <property name="enabled" if="'[form:code]'!=''">NO</property>
-                      <property name="title">Hold on...</property>
-                      <property name="message">Please provide one of the following: City, State, Country, Airport Code or a Zipcode (only US &amp; Canada)</property>
-                      <property name="button-text">Continue</property>
-                    </alert>
-                  </actions>
-                  <property name="height">34</property>
-                  <property name="vertical-alignment">middle</property>
-                  <property name="horizontal-alignment">center</property>
-                  <property name="width">95%</property>
-                  <property name="placeholder-text">'ICAO Code' or 'City, Country'</property>
-                  <property name="text" if="'[session:latlook]'!=''">[session:latlook],[session:lnglook]</property>
-                  <property name="style">plain</property>
-                  <property name="font">HelveticaNeue:15.0</property>
-                  <property name="layout-type">float</property>
-                  <property name="justification">center</property>
-                </RFTextInputWidget>
-              </widgets>
-            </RFLayoutWidget>
-            <RFImageWidget>
-              <property name="top-position">40</property>
-              <property name="image">resources/shadowline.png</property>
-              <property name="layout-type">float</property>
-              <property name="width">100%</property>
-              <property name="height">5</property>
-              <property name="allow-stretch">YES</property>
-            </RFImageWidget>
-          </widgets>
-        </RFLayoutWidget>
-        <RFLayoutWidget>
-          <property name="layout-type">relative</property>
-          <property name="top-margin">15</property>
-          <property name="width">100%</property>
-          <widgets>
-            <RFTextWidget id="location">
-              <property name="justification">center</property>
-              <property name="horizontal-alignment">center</property>
-              <property name="width">95%</property>
-              <property name="color">#333333</property>
-              <property name="text">Name, Location</property>
-              <property name="font">HelveticaNeue-Bold:16</property>
-              <property name="bottom-margin">0</property>
-            </RFTextWidget>
-            <RFTextWidget id="name">
-              <property name="justification">center</property>
-              <property name="width">100%</property>
-              <property name="color">#333333</property>
-              <property name="text">ICAO @ height in ft</property>
-              <property name="font">HelveticaNeue-Bold:20</property>
-              <property name="bottom-margin">5</property>
-            </RFTextWidget>
-            <RFHorizontalRuleWidget>
-              <property name="horizontal-alignment">center</property>
-              <property name="color">#999999</property>
-              <property name="width">70%</property>
-              <property name="height">1</property>
-              <property name="bottom-margin">0</property>
-            </RFHorizontalRuleWidget>
-            <RFTextWidget id="time">
-              <property name="justification">center</property>
-              <property name="text">Last Update on Date and Time</property>
-              <property name="width">100%</property>
-              <property name="color">#666666</property>
-              <property name="font">Helvetica:15</property>
-              <property name="bottom-margin">10</property>
-            </RFTextWidget>
-            <RFLayoutWidget id="currentcondition">
-              <property name="left-padding">60</property>
-              <property name="horizontal-alignment">center</property>
-              <widgets>
-                <RFImageWidget>
-                  <property name="top-position">0</property>
-                  <property name="image">resources/temp.png</property>
-                  <property name="left-margin">65</property>
-                  <property name="layout-type">float</property>
-                  <property name="height">40</property>
-                  <property name="width">40</property>
-                </RFImageWidget>
-                <RFImageWidget>
-                  <property name="top-position">45</property>
-                  <property name="image">resources/dew.png</property>
-                  <property name="left-margin">65</property>
-                  <property name="layout-type">float</property>
-                  <property name="height">40</property>
-                  <property name="width">40</property>
-                </RFImageWidget>
-                <RFImageWidget>
-                  <property name="top-position">95</property>
-                  <property name="image">resources/wind.png</property>
-                  <property name="left-margin">65</property>
-                  <property name="layout-type">float</property>
-                  <property name="height">40</property>
-                  <property name="width">40</property>
-                </RFImageWidget>
-                <RFImageWidget>
-                  <property name="top-position">147</property>
-                  <property name="image">resources/compass.png</property>
-                  <property name="left-margin">68</property>
-                  <property name="layout-type">float</property>
-                  <property name="height">33</property>
-                  <property name="width">33</property>
-                </RFImageWidget>
-                <RFImageWidget>
-                  <property name="top-position">192</property>
-                  <property name="image">resources/cloud.png</property>
-                  <property name="left-margin">65</property>
-                  <property name="layout-type">float</property>
-                  <property name="height">40</property>
-                  <property name="width">40</property>
-                </RFImageWidget>
-                <RFTextWidget id="temp">
-                  <property name="text">28°C / 76°F</property>
-                  <property name="color">#333333</property>
-                  <property name="font">HelveticaNeue-Bold:18</property>
-                  <property name="justification">center</property>
-                  <property name="width">100%</property>
-                  <property name="bottom-margin">-5</property>
-                </RFTextWidget>
-                <RFTextWidget id="tempdesc">
-                  <property name="text">Temperature</property>
-                  <property name="color">#666666</property>
-                  <property name="font">HelveticaNeue:15.0</property>
-                  <property name="justification">center</property>
-                  <property name="width">100%</property>
-                </RFTextWidget>
-                <RFTextWidget id="dewpoint">
-                  <property name="text">21°C / 66°F</property>
-                  <property name="color">#333333</property>
-                  <property name="font">HelveticaNeue-Bold:18</property>
-                  <property name="justification">center</property>
-                  <property name="width">100%</property>
-                  <property name="bottom-margin">-5</property>
-                </RFTextWidget>
-                <RFTextWidget id="dewpointdesc">
-                  <property name="text">Dew Point</property>
-                  <property name="color">#666666</property>
-                  <property name="font">HelveticaNeue:15.0</property>
-                  <property name="justification">center</property>
-                  <property name="width">100%</property>
-                </RFTextWidget>
-                <RFTextWidget id="windspeed">
-                  <property name="text">09 knots</property>
-                  <property name="color">#333333</property>
-                  <property name="font">HelveticaNeue-Bold:18</property>
-                  <property name="justification">center</property>
-                  <property name="width">100%</property>
-                  <property name="bottom-margin">-5</property>
-                </RFTextWidget>
-                <RFTextWidget id="windspeeddesc">
-                  <property name="text">Windspeed</property>
-                  <property name="color">#666666</property>
-                  <property name="font">HelveticaNeue:15.0</property>
-                  <property name="justification">center</property>
-                  <property name="width">100%</property>
-                </RFTextWidget>
-                <RFTextWidget id="winddir">
-                  <property name="text">270°</property>
-                  <property name="color">#333333</property>
-                  <property name="font">HelveticaNeue-Bold:18</property>
-                  <property name="justification">center</property>
-                  <property name="width">100%</property>
-                  <property name="bottom-margin">-5</property>
-                </RFTextWidget>
-                <RFTextWidget id="winddirdesc">
-                  <property name="text">Direction</property>
-                  <property name="color">#666666</property>
-                  <property name="font">HelveticaNeue:15.0</property>
-                  <property name="justification">center</property>
-                  <property name="width">100%</property>
-                </RFTextWidget>
-                <RFTextWidget id="clouds">
-                  <property name="text">few clouds</property>
-                  <property name="color">#333333</property>
-                  <property name="font">HelveticaNeue-Bold:18</property>
-                  <property name="justification">center</property>
-                  <property name="width">100%</property>
-                  <property name="bottom-margin">-5</property>
-                </RFTextWidget>
-                <RFTextWidget id="clouddesc">
-                  <property name="text">Condition</property>
-                  <property name="color">#666666</property>
-                  <property name="font">HelveticaNeue:15.0</property>
-                  <property name="justification">center</property>
-                  <property name="width">100%</property>
-                </RFTextWidget>
-              </widgets>
-            </RFLayoutWidget>
-          </widgets>
-        </RFLayoutWidget>
-        <RFImageWidget id="history">
-          <actions>
-            <modify on="touch">
-              <property name="widget-id">recentsearch</property>
-              <property name="duration">0.3</property>
-              <values>
-                <property name="top-position">0%</property>
-              </values>
-            </modify>
-          </actions>
-          <property name="image">resources/clock.png</property>
-          <property name="bottom-margin">8</property>
-          <property name="layout-type">float</property>
-          <property name="left-margin">10</property>
-          <property name="width">20</property>
-          <property name="height">20</property>
-          <property name="animate-touch">NO</property>
-          <property name="vertical-alignment">bottom</property>
-        </RFImageWidget>
-        <RFImageWidget>
-          <actions>
-            <modify on="touch">
-              <property name="widget-id">more</property>
-              <property name="duration">0.3</property>
-              <values>
-                <property name="top-position">40%</property>
-              </values>
-            </modify>
-          </actions>
-          <property name="layout-type">float</property>
-          <property name="image">resources/settings.png</property>
-          <property name="bottom-margin">8</property>
-          <property name="layout-type">float</property>
-          <property name="right-margin">10</property>
-          <property name="width">20</property>
-          <property name="height">20</property>
-          <property name="animate-touch">NO</property>
-          <property name="horizontal-alignment">right</property>
-          <property name="vertical-alignment">bottom</property>
-        </RFImageWidget>
-        <RFLayoutWidget id="more">
-          <property name="width">100%</property>
-          <property name="height">100%</property>
-          <property name="layout-type">float</property>
-          <property name="top-position">100%</property>
-          <property name="background-color">#000000A4</property>
-          <widgets>
-            <RFImageWidget>
-              <property name="image">resources/popupbg.png</property>
-              <property name="layout-type">absolute</property>
-              <property name="width">100%</property>
-              <property name="height">100%</property>
-              <property name="allow-stretch">YES</property>
-            </RFImageWidget>
-            <RFButtonWidget>
-              <actions>
-                <alert on="touch">
-                  <property name="title">METAR for [session:ICAOSave]</property>
-                  <property name="message">[session:METARSave]</property>
-                  <property name="button-text">Continue</property>
-                </alert>
-                <modify on="touch">
-                  <property name="widget-id">more</property>
-                  <property name="duration">0.3</property>
-                  <values>
-                    <property name="top-position">100%</property>
-                  </values>
-                </modify>
-              </actions>
-              <property name="font">HelveticaNeue-Bold:18</property>
-              <property name="text">Get METAR</property>
-              <property name="style">glossy</property>
-              <property name="width">80%</property>
-              <property name="height">40</property>
-              <property name="border-color">#000000</property>
-              <property name="top-position">20</property>
-              <property name="horizontal-alignment">center</property>
-              <property name="vertical-alignment">top</property>
-              <property name="layout-type">float</property>
-              <property name="background-color">#CCCCCC</property>
-              <property name="color">#333333</property>
-            </RFButtonWidget>
-            <RFButtonWidget>
-              <actions>
-                <alert on="touch">
-                  <property name="title">Not currently working</property>
-                  <property name="message">[session:TAFSave]</property>
-                  <property name="button-text">Continue</property>
-                </alert>
-                <modify on="touch">
-                  <property name="widget-id">more</property>
-                  <property name="duration">0.3</property>
-                  <values>
-                    <property name="top-position">100%</property>
-                  </values>
-                </modify>
-              </actions>
-              <property name="font">HelveticaNeue-Bold:18</property>
-              <property name="text">Get TAF</property>
-              <property name="style">glossy</property>
-              <property name="width">80%</property>
-              <property name="height">40</property>
-              <property name="border-color">#000000</property>
-              <property name="top-position">70</property>
-              <property name="horizontal-alignment">center</property>
-              <property name="vertical-alignment">top</property>
-              <property name="layout-type">float</property>
-              <property name="background-color">#CCCCCC</property>
-              <property name="color">#333333</property>
-            </RFButtonWidget>
-            <RFButtonWidget>
-              <actions>
-                <alert on="touch">
-                  <property name="title">Additional Info for [session:ICAOSave]</property>
-                  <property name="message">[session:timeinfoRSave]</property>
-                  <property name="button-text">Continue</property>
-                </alert>
-                <modify on="touch">
-                  <property name="widget-id">more</property>
-                  <property name="duration">0.3</property>
-                  <values>
-                    <property name="top-position">100%</property>
-                  </values>
-                </modify>
-              </actions>
-              <property name="font">HelveticaNeue-Bold:18</property>
-              <property name="text">Airport Information</property>
-              <property name="style">glossy</property>
-              <property name="width">80%</property>
-              <property name="height">40</property>
-              <property name="border-color">#000000</property>
-              <property name="top-position">120</property>
-              <property name="horizontal-alignment">center</property>
-              <property name="vertical-alignment">top</property>
-              <property name="layout-type">float</property>
-              <property name="background-color">#CCCCCC</property>
-              <property name="color">#333333</property>
-            </RFButtonWidget>
-            <RFButtonWidget>
-              <actions>
-                <navigate on="touch">
-                  <property name="navigation-stack-type">replace</property>
-                  <property name="to">RFAppConfig.xml</property>
-                </navigate>
-              </actions>
-              <property name="font">HelveticaNeue-Bold:18</property>
-              <property name="text">Go back to Maps</property>
-              <property name="style">glossy</property>
-              <property name="width">80%</property>
-              <property name="height">40</property>
-              <property name="border-color">#000000</property>
-              <property name="top-position">170</property>
-              <property name="horizontal-alignment">center</property>
-              <property name="vertical-alignment">top</property>
-              <property name="layout-type">float</property>
-              <property name="background-color">#CCCCCC</property>
-              <property name="color">#333333</property>
-            </RFButtonWidget>
-            <RFButtonWidget>
-              <actions>
-                <modify on="touch">
-                  <property name="widget-id">more</property>
-                  <property name="duration">0.3</property>
-                  <values>
-                    <property name="top-position">100%</property>
-                  </values>
-                </modify>
-              </actions>
-              <property name="font">HelveticaNeue-Bold:18</property>
-              <property name="text">Cancel</property>
-              <property name="style">glossy</property>
-              <property name="width">80%</property>
-              <property name="height">40</property>
-              <property name="border-color">#000000</property>
-              <property name="top-position">220</property>
-              <property name="horizontal-alignment">center</property>
-              <property name="vertical-alignment">top</property>
-              <property name="layout-type">float</property>
-              <property name="background-color">#333333</property>
-              <property name="color">#F5F5F5</property>
-            </RFButtonWidget>
-          </widgets>
-        </RFLayoutWidget>
-        <RFLayoutWidget id="recentsearch">
-          <property name="width">100%</property>
-          <property name="height">100%</property>
-          <property name="layout-type">float</property>
-          <property name="top-position">-100%</property>
-          <property name="background-color">#F5F5F5</property>
-          <widgets>
-            <RFImageWidget>
-              <property name="top-position">2</property>
-              <property name="image">resources/recently.png</property>
-              <property name="horizontal-alignment">center</property>
-              <property name="vertical-alignment">middle</property>
-              <property name="layout-type">float</property>
-              <property name="width">280</property>
-              <property name="height">60</property>
-              <property name="animate-touch">NO</property>
-            </RFImageWidget>
-            <RFImageWidget>
-              <property name="top-position">66</property>
-              <property name="image">resources/line_shadow.png</property>
-              <property name="layout-type">float</property>
-              <property name="width">100%</property>
-              <property name="height">5</property>
-              <property name="allow-stretch">YES</property>
-            </RFImageWidget>
-            <RFRepeaterWidget id="searchrepeater">
-              <property name="horizontal-alignment">center</property>
-              <property name="top-padding">66</property>
-              <property name="bottom-padding">40</property>
-              <property name="row-data-id">recentitem</property>
-              <property name="row-data-path">recent/item</property>
-              <property name="width">80%</property>
-              <property name="height">100%</property>
-              <property name="item-height">50</property>
-              <property name="separator-color">#CCCCCC</property>
-              <property name="fade-rows">NO</property>
-              <property name="animate-new-rows">NO</property>
-              <widgets>
-                <RFLayoutWidget>
-                  <property name="width">100%</property>
-                  <property name="height">100%</property>
-                  <actions>
-                    <modify on="touch">
-                      <property name="widget-id">recentsearch</property>
-                      <property name="duration">0.3</property>
-                      <values>
-                        <property name="top-position">-100%</property>
-                      </values>
-                    </modify>
-                    <modify on="touch">
-                      <property name="widget-id">code</property>
-                      <values>
-                        <property name="text">[data:row("text()")]</property>
-                      </values>
-                    </modify>
-                    <load_datasource on="touch">
-                      <property name="datasource-id">directory</property>
-                    </load_datasource>
-                  </actions>
-                  <widgets>
-                    <RFTextWidget id="searchrepeatertext">
-                      <property name="text">[data:row("text()")]</property>
-                      <property name="color">#666666</property>
-                      <property name="vertical-alignment">middle</property>
-                      <property name="font">HelveticaNeue-Bold:23</property>
-                      <property name="width">100%</property>
-                      <property name="height">100%</property>
-                      <property name="layout-type">float</property>
-                      <property name="justification">center</property>
-                    </RFTextWidget>
-                  </widgets>
+                </RFXMLDataProvider>
+                <RFXMLDataProvider id="gettimeinfo">
+                    <property name="hide-activity-indicator">YES</property>
+                    <property name="auto-load">NO</property>
+                    <property name="data-location">http://api.geonames.org/timezone</property>
+                    <property name="method">GET</property>
+                    <submit_values>
+                        <property name="lat">[session:LATsave]</property>
+                        <property name="lng">[session:LNGsave]</property>
+                        <property name="username">inoads</property>
+                    </submit_values>
+                    <actions>
+                        <set on="success" if="'[data:getmetar('//geonames/observation/ICAO')]'!=''">
+                            <property name="save-locally">YES</property>
+                            <values>
+                                <property name="timeinfoRSave">GMT Offset: [eval:("var timezone = [data:gettimeinfo("//geonames/timezone/gmtOffset")]; timezoneadj = timezone.toFixed(0); timezoneadj")] from [data:gettimeinfo("//geonames/timezone/timezoneId")]                        Sunrise: [data:gettimeinfo("//geonames/timezone/sunrise")]   Sunset: [data:gettimeinfo("//geonames/timezone/sunset")]</property>
+                            </values>
+                        </set>
+                    </actions>
+                </RFXMLDataProvider>
+                <!--  <RFHTMLDataProvider id="gettaf">
+                 <property name="hide-activity-indicator">YES</property>
+                 <property name="auto-load">NO</property>
+                 <property name="data-location">http://weather.noaa.gov/pub/data/forecasts/shorttaf/stations/EGSS.TXT</property>
+                 <property name="method">GET</property>
+                 <actions>
+                 <alert on="success">
+                 <property name="message">[data:gettaf()]</property>
+                 <property name="button-text">Continue</property>
+                 </alert>
+                 <set on="success" if="'[data:gettaf('[/0-9aA-z: ]')]'!=''">
+                 <property name="save-locally">YES</property>
+                 <values>
+                 <property name="TAFSave">[data:gettaf('*')]</property>
+                 </values>
+                 </set>
+                 </actions>
+                 </RFHTMLDataProvider> -->
+                <RFXMLDataProvider id="getmetar">
+                    <property name="hide-activity-indicator">YES</property>
+                    <property name="auto-load">NO</property>
+                    <property name="data-location">http://api.geonames.org/weatherIcaoXML</property>
+                    <property name="method">GET</property>
+                    <submit_values>
+                        <property name="ICAO">[data:directory("//current_observation/station_id")]</property>
+                        <property name="username">inoads</property>
+                    </submit_values>
+                    <actions>
+                        <refresh on="load-finished">
+                            <property name="id">recentitem</property>
+                            <property name="widget-id">searchrepeater</property>
+                            <property name="widget-id">searchrepeatertext</property>
+                        </refresh>
+                        <set on="success" if="'[data:getmetar('//geonames/observation/ICAO')]'!=''">
+                            <property name="save-locally">YES</property>
+                            <values>
+                                <property name="METARSave">[data:getmetar("//geonames/observation/observation")]</property>
+                                <property name="ICAOSave">[data:getmetar("//geonames/observation/ICAO")]</property>
+                                <property name="LATsave">[data:getmetar("//geonames/observation/lat")]</property>
+                                <property name="LNGsave">[data:getmetar("//geonames/observation/lng")]</property>
+                                <property name="recentItems"><![CDATA[<item><]]>![CDATA[[data:getmetar("//geonames/observation/ICAO")]]]<![CDATA[></item>[eval:("'[session:recentItems]'.replace('<item><]]>![CDATA[[data:getmetar("//geonames/observation/ICAO")]]]<![CDATA[></item>', '');")]]]></property>
+                            </values>
+                        </set>
+                        <load_datasource on="success">
+                            <property name="datasource-id">gettimeinfo</property>
+                        </load_datasource>
+                        <load_datasource on="success">
+                            <property name="datasource-id">gettaf</property>
+                        </load_datasource>
+                        <modify on="success">
+                            <property name="widget-id">location</property>
+                            <values>
+                                <property name="text">[data:getmetar("//geonames/observation/stationName")], [data:getmetar("//geonames/observation/countryCode")]</property>
+                            </values>
+                        </modify>
+                        <modify on="success">
+                            <property name="widget-id">name</property>
+                            <values>
+                                <property name="text">[data:getmetar("//geonames/observation/ICAO")] @ [eval:("var elvadj = 0; var elv = [data:getmetar("//geonames/observation/elevation")] * 3.28; elvadj = elv.toFixed(0); elvadj")]ft</property>
+                            </values>
+                        </modify>
+                        <modify on="success">
+                            <property name="widget-id">time</property>
+                            <values>
+                                <property name="text">Updated on [data:getmetar("//geonames/observation/observationTime")]</property>
+                            </values>
+                        </modify>
+                        <modify on="success">
+                            <property name="widget-id">temp</property>
+                            <values>
+                                <property name="text">[data:getmetar("//geonames/observation/temperature")]°C / [eval:("var tempf = 0; var tempc = [data:getmetar("//geonames/observation/temperature")] * 1.8 + 32; tempf = tempc.toFixed(0); tempf")]°F</property>
+                            </values>
+                        </modify>
+                        <modify on="success">
+                            <property name="widget-id">dewpoint</property>
+                            <values>
+                                <property name="text">[data:getmetar("//geonames/observation/dewPoint")]°C / [eval:("var dewf = 0; var dewc = [data:getmetar("//geonames/observation/dewPoint")] * 1.8 + 32; dewf = dewc.toFixed(0); dewf")]°F</property>
+                            </values>
+                        </modify>
+                        <modify on="success">
+                            <property name="widget-id">clouds</property>
+                            <values>
+                                <property name="text">[data:getmetar("//geonames/observation/clouds")]</property>
+                            </values>
+                        </modify>
+                        <modify on="success">
+                            <property name="widget-id">windspeed</property>
+                            <values>
+                                <property name="text">[data:getmetar("//geonames/observation/windSpeed")] knots</property>
+                            </values>
+                        </modify>
+                        <modify on="success">
+                            <property name="widget-id">winddir</property>
+                            <values>
+                                <property name="text">[data:getmetar("//geonames/observation/windDirection")]°</property>
+                            </values>
+                        </modify>
+                    </actions>
+                </RFXMLDataProvider>
+                <RFXMLDataProvider id="directory">
+                    <property name="hide-activity-indicator">YES</property>
+                    <property name="auto-load">NO</property>
+                    <property name="auth-method">HTTP</property>
+                    <property name="data-location">http://api.wunderground.com/auto/wui/geo/WXCurrentObXML/index.xml</property>
+                    <property name="method">GET</property>
+                    <submit_values>
+                        <property name="query">[form:code]</property>
+                    </submit_values>
+                    <actions>
+                        <alert on="failed">
+                            <property name="title">Search Failed</property>
+                            <property name="message">Please connect to the Internet</property>
+                            <property name="button-text">Continue</property>
+                        </alert>
+                        <set on="success">
+                            <property name="save-locally">YES</property>
+                            <values>
+                                <property name="latlook">[session:emptyvalue]</property>
+                                <property name="lnglook">[session:emptyvalue]</property>
+                            </values>
+                        </set>
+                        <load_datasource on="success">
+                            <property name="datasource-id" if="'[data:directory('//current_observation/station_id')]'!=''">getmetar</property>
+                        </load_datasource>
+                        <modify on="success">
+                            <property name="widget-id">code</property>
+                            <values>
+                                <property name="text">[session:emptyvalue]</property>
+                            </values>
+                        </modify>
+                        <alert on="success">
+                            <property name="enabled" if="'[data:directory('//current_observation/station_id')]'!=''">NO</property>
+                            <property name="title">No entries found</property>
+                            <property name="message">Please try being more specific. Also, use ICAO instead of IATA codes.</property>
+                            <property name="button-text">Continue</property>
+                        </alert>
+                    </actions>
+                </RFXMLDataProvider>
+            </datasources>
+            <widgets>
+                <RFLayoutWidget id="rfTitleBar">
+                    <property name="padding">0</property>
+                    <property name="width">100%</property>
+                    <property name="height">51</property>
+                    <property name="layout-type">float</property>
+                    <widgets>
+                        <RFLayoutWidget>
+                            <property name="width">100%</property>
+                            <property name="layout-flow">horizontal</property>
+                            <property name="height">51</property>
+                            <widgets>
+                                <RFImageWidget>
+                                    <property name="image">resources/titlebar.png</property>
+                                    <property name="layout-type">absolute</property>
+                                    <property name="top-position">0</property>
+                                    <property name="left-position">0</property>
+                                    <property name="width">100%</property>
+                                    <property name="height">51</property>
+                                    <property name="allow-stretch">YES</property>
+                                </RFImageWidget>
+                                <RFImageWidget>
+                                    <actions>
+                                        <navigate on="touch">
+                                            <property name="navigation-transition">flip-right</property>
+                                            <property name="navigation-stack-type">replace</property>
+                                            <property name="to">RFAppConfig.xml</property>
+                                        </navigate>
+                                    </actions>
+                                    <property name="image">resources/namedir.png</property>
+                                    <property name="horizontal-alignment">center</property>
+                                    <property name="vertical-alignment">middle</property>
+                                    <property name="layout-type">float</property>
+                                    <property name="width">222</property>
+                                    <property name="height">50</property>
+                                    <property name="animate-touch">NO</property>
+                                </RFImageWidget>
+                            </widgets>
+                        </RFLayoutWidget>
+                    </widgets>
                 </RFLayoutWidget>
-              </widgets>
-            </RFRepeaterWidget>
-            <RFImageWidget>
-              <property name="bottom-margin">40</property>
-              <property name="vertical-alignment">bottom</property>
-              <property name="image">resources/line_shadow_flipped.png</property>
-              <property name="layout-type">float</property>
-              <property name="width">100%</property>
-              <property name="height">5</property>
-              <property name="allow-stretch">YES</property>
-            </RFImageWidget>
-            <RFButtonWidget>
-              <actions>
-                <modify on="touch">
-                  <property name="widget-id">recentsearch</property>
-                  <property name="duration">0.3</property>
-                  <values>
+                <RFLayoutWidget>
+                    <property name="top-position">51</property>
+                    <property name="width">100%</property>
+                    <property name="height">45</property>
+                    <property name="vertical-alignment">top</property>
+                    <property name="layout-type">float</property>
+                    <widgets>
+                        <RFLayoutWidget>
+                            <property name="width">100%</property>
+                            <property name="layout-flow">horizontal</property>
+                            <property name="height">40</property>
+                            <widgets>
+                                <RFImageWidget>
+                                    <property name="image">resources/searchbg.png</property>
+                                    <property name="layout-type">absolute</property>
+                                    <property name="width">100%</property>
+                                    <property name="height">40</property>
+                                    <property name="allow-stretch">YES</property>
+                                </RFImageWidget>
+                                <RFTextInputWidget id="code">
+                                    <actions>
+                                        <load_datasource on="lost-focus">
+                                            <property name="datasource-id" if="'[form:code]'!=''">directory</property>
+                                        </load_datasource>
+                                        <alert on="lost-focus">
+                                            <property name="enabled" if="'[form:code]'!=''">NO</property>
+                                            <property name="title">Hold on...</property>
+                                            <property name="message">Please provide one of the following: City, State, Country, Airport Code or a Zipcode (only US &amp; Canada)</property>
+                                            <property name="button-text">Continue</property>
+                                        </alert>
+                                    </actions>
+                                    <property name="height">34</property>
+                                    <property name="vertical-alignment">middle</property>
+                                    <property name="horizontal-alignment">center</property>
+                                    <property name="width">95%</property>
+                                    <property name="placeholder-text">'ICAO Code' or 'City, Country'</property>
+                                    <property name="text" if="'[session:latlook]'!=''">[session:latlook],[session:lnglook]</property>
+                                    <property name="style">plain</property>
+                                    <property name="font">HelveticaNeue:15.0</property>
+                                    <property name="layout-type">float</property>
+                                    <property name="justification">center</property>
+                                </RFTextInputWidget>
+                            </widgets>
+                        </RFLayoutWidget>
+                        <RFImageWidget>
+                            <property name="top-position">40</property>
+                            <property name="image">resources/shadowline.png</property>
+                            <property name="layout-type">float</property>
+                            <property name="width">100%</property>
+                            <property name="height">5</property>
+                            <property name="allow-stretch">YES</property>
+                        </RFImageWidget>
+                    </widgets>
+                </RFLayoutWidget>
+                <RFLayoutWidget>
+                    <property name="layout-type">relative</property>
+                    <property name="top-margin">15</property>
+                    <property name="width">100%</property>
+                    <widgets>
+                        <RFTextWidget id="location">
+                            <property name="justification">center</property>
+                            <property name="horizontal-alignment">center</property>
+                            <property name="width">95%</property>
+                            <property name="color">#333333</property>
+                            <property name="text">Name, Location</property>
+                            <property name="font">HelveticaNeue-Bold:16</property>
+                            <property name="bottom-margin">0</property>
+                        </RFTextWidget>
+                        <RFTextWidget id="name">
+                            <property name="justification">center</property>
+                            <property name="width">100%</property>
+                            <property name="color">#333333</property>
+                            <property name="text">ICAO @ height in ft</property>
+                            <property name="font">HelveticaNeue-Bold:20</property>
+                            <property name="bottom-margin">5</property>
+                        </RFTextWidget>
+                        <RFHorizontalRuleWidget>
+                            <property name="horizontal-alignment">center</property>
+                            <property name="color">#999999</property>
+                            <property name="width">70%</property>
+                            <property name="height">1</property>
+                            <property name="bottom-margin">0</property>
+                        </RFHorizontalRuleWidget>
+                        <RFTextWidget id="time">
+                            <property name="justification">center</property>
+                            <property name="text">Last Update on Date and Time</property>
+                            <property name="width">100%</property>
+                            <property name="color">#666666</property>
+                            <property name="font">Helvetica:15</property>
+                            <property name="bottom-margin">10</property>
+                        </RFTextWidget>
+                        <RFLayoutWidget id="currentcondition">
+                            <property name="left-padding">60</property>
+                            <property name="horizontal-alignment">center</property>
+                            <widgets>
+                                <RFImageWidget>
+                                    <property name="top-position">0</property>
+                                    <property name="image">resources/temp.png</property>
+                                    <property name="left-margin">65</property>
+                                    <property name="layout-type">float</property>
+                                    <property name="height">40</property>
+                                    <property name="width">40</property>
+                                </RFImageWidget>
+                                <RFImageWidget>
+                                    <property name="top-position">45</property>
+                                    <property name="image">resources/dew.png</property>
+                                    <property name="left-margin">65</property>
+                                    <property name="layout-type">float</property>
+                                    <property name="height">40</property>
+                                    <property name="width">40</property>
+                                </RFImageWidget>
+                                <RFImageWidget>
+                                    <property name="top-position">95</property>
+                                    <property name="image">resources/wind.png</property>
+                                    <property name="left-margin">65</property>
+                                    <property name="layout-type">float</property>
+                                    <property name="height">40</property>
+                                    <property name="width">40</property>
+                                </RFImageWidget>
+                                <RFImageWidget>
+                                    <property name="top-position">147</property>
+                                    <property name="image">resources/compass.png</property>
+                                    <property name="left-margin">68</property>
+                                    <property name="layout-type">float</property>
+                                    <property name="height">33</property>
+                                    <property name="width">33</property>
+                                </RFImageWidget>
+                                <RFImageWidget>
+                                    <property name="top-position">192</property>
+                                    <property name="image">resources/cloud.png</property>
+                                    <property name="left-margin">65</property>
+                                    <property name="layout-type">float</property>
+                                    <property name="height">40</property>
+                                    <property name="width">40</property>
+                                </RFImageWidget>
+                                <RFTextWidget id="temp">
+                                    <property name="text">28°C / 76°F</property>
+                                    <property name="color">#333333</property>
+                                    <property name="font">HelveticaNeue-Bold:18</property>
+                                    <property name="justification">center</property>
+                                    <property name="width">100%</property>
+                                    <property name="bottom-margin">-5</property>
+                                </RFTextWidget>
+                                <RFTextWidget id="tempdesc">
+                                    <property name="text">Temperature</property>
+                                    <property name="color">#666666</property>
+                                    <property name="font">HelveticaNeue:15.0</property>
+                                    <property name="justification">center</property>
+                                    <property name="width">100%</property>
+                                </RFTextWidget>
+                                <RFTextWidget id="dewpoint">
+                                    <property name="text">21°C / 66°F</property>
+                                    <property name="color">#333333</property>
+                                    <property name="font">HelveticaNeue-Bold:18</property>
+                                    <property name="justification">center</property>
+                                    <property name="width">100%</property>
+                                    <property name="bottom-margin">-5</property>
+                                </RFTextWidget>
+                                <RFTextWidget id="dewpointdesc">
+                                    <property name="text">Dew Point</property>
+                                    <property name="color">#666666</property>
+                                    <property name="font">HelveticaNeue:15.0</property>
+                                    <property name="justification">center</property>
+                                    <property name="width">100%</property>
+                                </RFTextWidget>
+                                <RFTextWidget id="windspeed">
+                                    <property name="text">09 knots</property>
+                                    <property name="color">#333333</property>
+                                    <property name="font">HelveticaNeue-Bold:18</property>
+                                    <property name="justification">center</property>
+                                    <property name="width">100%</property>
+                                    <property name="bottom-margin">-5</property>
+                                </RFTextWidget>
+                                <RFTextWidget id="windspeeddesc">
+                                    <property name="text">Windspeed</property>
+                                    <property name="color">#666666</property>
+                                    <property name="font">HelveticaNeue:15.0</property>
+                                    <property name="justification">center</property>
+                                    <property name="width">100%</property>
+                                </RFTextWidget>
+                                <RFTextWidget id="winddir">
+                                    <property name="text">270°</property>
+                                    <property name="color">#333333</property>
+                                    <property name="font">HelveticaNeue-Bold:18</property>
+                                    <property name="justification">center</property>
+                                    <property name="width">100%</property>
+                                    <property name="bottom-margin">-5</property>
+                                </RFTextWidget>
+                                <RFTextWidget id="winddirdesc">
+                                    <property name="text">Direction</property>
+                                    <property name="color">#666666</property>
+                                    <property name="font">HelveticaNeue:15.0</property>
+                                    <property name="justification">center</property>
+                                    <property name="width">100%</property>
+                                </RFTextWidget>
+                                <RFTextWidget id="clouds">
+                                    <property name="text">few clouds</property>
+                                    <property name="color">#333333</property>
+                                    <property name="font">HelveticaNeue-Bold:18</property>
+                                    <property name="justification">center</property>
+                                    <property name="width">100%</property>
+                                    <property name="bottom-margin">-5</property>
+                                </RFTextWidget>
+                                <RFTextWidget id="clouddesc">
+                                    <property name="text">Condition</property>
+                                    <property name="color">#666666</property>
+                                    <property name="font">HelveticaNeue:15.0</property>
+                                    <property name="justification">center</property>
+                                    <property name="width">100%</property>
+                                </RFTextWidget>
+                            </widgets>
+                        </RFLayoutWidget>
+                    </widgets>
+                </RFLayoutWidget>
+                <RFImageWidget id="history">
+                    <actions>
+                        <modify on="touch">
+                            <property name="widget-id">recentsearch</property>
+                            <property name="duration">0.3</property>
+                            <values>
+                                <property name="top-position">0%</property>
+                            </values>
+                        </modify>
+                    </actions>
+                    <property name="image">resources/clock.png</property>
+                    <property name="bottom-margin">8</property>
+                    <property name="layout-type">float</property>
+                    <property name="left-margin">10</property>
+                    <property name="width">20</property>
+                    <property name="height">20</property>
+                    <property name="animate-touch">NO</property>
+                    <property name="vertical-alignment">bottom</property>
+                </RFImageWidget>
+                <RFImageWidget>
+                    <actions>
+                        <modify on="touch">
+                            <property name="widget-id">more</property>
+                            <property name="duration">0.3</property>
+                            <values>
+                                <property name="top-position">40%</property>
+                            </values>
+                        </modify>
+                    </actions>
+                    <property name="layout-type">float</property>
+                    <property name="image">resources/settings.png</property>
+                    <property name="bottom-margin">8</property>
+                    <property name="layout-type">float</property>
+                    <property name="right-margin">10</property>
+                    <property name="width">20</property>
+                    <property name="height">20</property>
+                    <property name="animate-touch">NO</property>
+                    <property name="horizontal-alignment">right</property>
+                    <property name="vertical-alignment">bottom</property>
+                </RFImageWidget>
+                <RFLayoutWidget id="more">
+                    <property name="width">100%</property>
+                    <property name="height">100%</property>
+                    <property name="layout-type">float</property>
+                    <property name="top-position">100%</property>
+                    <property name="background-color">#000000A4</property>
+                    <widgets>
+                        <RFImageWidget>
+                            <property name="image">resources/popupbg.png</property>
+                            <property name="layout-type">absolute</property>
+                            <property name="width">100%</property>
+                            <property name="height">100%</property>
+                            <property name="allow-stretch">YES</property>
+                        </RFImageWidget>
+                        <RFButtonWidget>
+                            <actions>
+                                <alert on="touch">
+                                    <property name="title">METAR for [session:ICAOSave]</property>
+                                    <property name="message">[session:METARSave]</property>
+                                    <property name="button-text">Continue</property>
+                                </alert>
+                                <modify on="touch">
+                                    <property name="widget-id">more</property>
+                                    <property name="duration">0.3</property>
+                                    <values>
+                                        <property name="top-position">100%</property>
+                                    </values>
+                                </modify>
+                            </actions>
+                            <property name="font">HelveticaNeue-Bold:18</property>
+                            <property name="text">Get METAR</property>
+                            <property name="style">glossy</property>
+                            <property name="width">80%</property>
+                            <property name="height">40</property>
+                            <property name="border-color">#000000</property>
+                            <property name="top-position">20</property>
+                            <property name="horizontal-alignment">center</property>
+                            <property name="vertical-alignment">top</property>
+                            <property name="layout-type">float</property>
+                            <property name="background-color">#CCCCCC</property>
+                            <property name="color">#333333</property>
+                        </RFButtonWidget>
+                        <RFButtonWidget>
+                            <actions>
+                                <alert on="touch">
+                                    <property name="title">Not currently working</property>
+                                    <property name="message">[session:TAFSave]</property>
+                                    <property name="button-text">Continue</property>
+                                </alert>
+                                <modify on="touch">
+                                    <property name="widget-id">more</property>
+                                    <property name="duration">0.3</property>
+                                    <values>
+                                        <property name="top-position">100%</property>
+                                    </values>
+                                </modify>
+                            </actions>
+                            <property name="font">HelveticaNeue-Bold:18</property>
+                            <property name="text">Get TAF</property>
+                            <property name="style">glossy</property>
+                            <property name="width">80%</property>
+                            <property name="height">40</property>
+                            <property name="border-color">#000000</property>
+                            <property name="top-position">70</property>
+                            <property name="horizontal-alignment">center</property>
+                            <property name="vertical-alignment">top</property>
+                            <property name="layout-type">float</property>
+                            <property name="background-color">#CCCCCC</property>
+                            <property name="color">#333333</property>
+                        </RFButtonWidget>
+                        <RFButtonWidget>
+                            <actions>
+                                <alert on="touch">
+                                    <property name="title">Additional Info for [session:ICAOSave]</property>
+                                    <property name="message">[session:timeinfoRSave]</property>
+                                    <property name="button-text">Continue</property>
+                                </alert>
+                                <modify on="touch">
+                                    <property name="widget-id">more</property>
+                                    <property name="duration">0.3</property>
+                                    <values>
+                                        <property name="top-position">100%</property>
+                                    </values>
+                                </modify>
+                            </actions>
+                            <property name="font">HelveticaNeue-Bold:18</property>
+                            <property name="text">Airport Information</property>
+                            <property name="style">glossy</property>
+                            <property name="width">80%</property>
+                            <property name="height">40</property>
+                            <property name="border-color">#000000</property>
+                            <property name="top-position">120</property>
+                            <property name="horizontal-alignment">center</property>
+                            <property name="vertical-alignment">top</property>
+                            <property name="layout-type">float</property>
+                            <property name="background-color">#CCCCCC</property>
+                            <property name="color">#333333</property>
+                        </RFButtonWidget>
+                        <RFButtonWidget>
+                            <actions>
+                                <navigate on="touch">
+                                    <property name="navigation-transition">flip-right</property>
+                                    <property name="navigation-stack-type">replace</property>
+                                    <property name="to">RFAppConfig.xml</property>
+                                </navigate>
+                            </actions>
+                            <property name="font">HelveticaNeue-Bold:18</property>
+                            <property name="text">Go back to Maps</property>
+                            <property name="style">glossy</property>
+                            <property name="width">80%</property>
+                            <property name="height">40</property>
+                            <property name="border-color">#000000</property>
+                            <property name="top-position">170</property>
+                            <property name="horizontal-alignment">center</property>
+                            <property name="vertical-alignment">top</property>
+                            <property name="layout-type">float</property>
+                            <property name="background-color">#CCCCCC</property>
+                            <property name="color">#333333</property>
+                        </RFButtonWidget>
+                        <RFButtonWidget>
+                            <actions>
+                                <modify on="touch">
+                                    <property name="widget-id">more</property>
+                                    <property name="duration">0.3</property>
+                                    <values>
+                                        <property name="top-position">100%</property>
+                                    </values>
+                                </modify>
+                            </actions>
+                            <property name="font">HelveticaNeue-Bold:18</property>
+                            <property name="text">Cancel</property>
+                            <property name="style">glossy</property>
+                            <property name="width">80%</property>
+                            <property name="height">40</property>
+                            <property name="border-color">#000000</property>
+                            <property name="top-position">220</property>
+                            <property name="horizontal-alignment">center</property>
+                            <property name="vertical-alignment">top</property>
+                            <property name="layout-type">float</property>
+                            <property name="background-color">#333333</property>
+                            <property name="color">#F5F5F5</property>
+                        </RFButtonWidget>
+                    </widgets>
+                </RFLayoutWidget>
+                <RFLayoutWidget id="recentsearch">
+                    <property name="width">100%</property>
+                    <property name="height">100%</property>
+                    <property name="layout-type">float</property>
                     <property name="top-position">-100%</property>
-                  </values>
-                </modify>
-                <set on="touch">
-                  <property name="save-locally">YES</property>
-                  <values>
-                    <property name="recentItems">[session:emptyvalue]</property>
-                  </values>
-                </set>
-                <refresh on="touch">
-                  <property name="id">recentitem</property>
-                  <property name="widget-id">searchrepeater</property>
-                  <property name="widget-id">searchrepeatertext</property>
-                </refresh>
-              </actions>
-              <property name="font">HelveticaNeue-Bold:15</property>
-              <property name="text">Clear</property>
-              <property name="style">glossy</property>
-              <property name="width">60</property>
-              <property name="height">30</property>
-              <property name="left-margin">5</property>
-              <property name="bottom-margin">5</property>
-              <property name="horizontal-alignment">left</property>
-              <property name="vertical-alignment">bottom</property>
-              <property name="layout-type">float</property>
-              <property name="background-color">#990000</property>
-            </RFButtonWidget>
-            <RFButtonWidget>
-              <actions>
-                <modify on="touch">
-                  <property name="widget-id">recentsearch</property>
-                  <property name="duration">0.3</property>
-                  <values>
-                    <property name="top-position">-100%</property>
-                  </values>
-                </modify>
-                <refresh on="touch">
-                  <property name="id">recentitem</property>
-                  <property name="widget-id">searchrepeater</property>
-                  <property name="widget-id">searchrepeatertext</property>
-                </refresh>
-              </actions>
-              <property name="font">HelveticaNeue-Bold:15</property>
-              <property name="text">Done</property>
-              <property name="style">glossy</property>
-              <property name="width">60</property>
-              <property name="height">30</property>
-              <property name="right-margin">5</property>
-              <property name="bottom-margin">5</property>
-              <property name="horizontal-alignment">right</property>
-              <property name="vertical-alignment">bottom</property>
-              <property name="layout-type">float</property>
-              <property name="background-color">#333399</property>
-            </RFButtonWidget>
-          </widgets>
-        </RFLayoutWidget>
-      </widgets>
-    </view>
-  </views>
+                    <property name="background-color">#F5F5F5</property>
+                    <widgets>
+                        <RFImageWidget>
+                            <property name="top-position">2</property>
+                            <property name="image">resources/recently.png</property>
+                            <property name="horizontal-alignment">center</property>
+                            <property name="vertical-alignment">middle</property>
+                            <property name="layout-type">float</property>
+                            <property name="width">280</property>
+                            <property name="height">60</property>
+                            <property name="animate-touch">NO</property>
+                        </RFImageWidget>
+                        <RFImageWidget>
+                            <property name="top-position">66</property>
+                            <property name="image">resources/line_shadow.png</property>
+                            <property name="layout-type">float</property>
+                            <property name="width">100%</property>
+                            <property name="height">5</property>
+                            <property name="allow-stretch">YES</property>
+                        </RFImageWidget>
+                        <RFRepeaterWidget id="searchrepeater">
+                            <property name="horizontal-alignment">center</property>
+                            <property name="top-padding">66</property>
+                            <property name="bottom-padding">40</property>
+                            <property name="row-data-id">recentitem</property>
+                            <property name="row-data-path">recent/item</property>
+                            <property name="width">80%</property>
+                            <property name="height">100%</property>
+                            <property name="item-height">50</property>
+                            <property name="separator-color">#CCCCCC</property>
+                            <property name="fade-rows">NO</property>
+                            <property name="animate-new-rows">NO</property>
+                            <widgets>
+                                <RFLayoutWidget>
+                                    <property name="width">100%</property>
+                                    <property name="height">100%</property>
+                                    <actions>
+                                        <modify on="touch">
+                                            <property name="widget-id">recentsearch</property>
+                                            <property name="duration">0.3</property>
+                                            <values>
+                                                <property name="top-position">-100%</property>
+                                            </values>
+                                        </modify>
+                                        <modify on="touch">
+                                            <property name="widget-id">code</property>
+                                            <values>
+                                                <property name="text">[data:row("text()")]</property>
+                                            </values>
+                                        </modify>
+                                        <load_datasource on="touch">
+                                            <property name="datasource-id">directory</property>
+                                        </load_datasource>
+                                    </actions>
+                                    <widgets>
+                                        <RFTextWidget id="searchrepeatertext">
+                                            <property name="text">[data:row("text()")]</property>
+                                            <property name="color">#666666</property>
+                                            <property name="vertical-alignment">middle</property>
+                                            <property name="font">HelveticaNeue-Bold:23</property>
+                                            <property name="width">100%</property>
+                                            <property name="height">100%</property>
+                                            <property name="layout-type">float</property>
+                                            <property name="justification">center</property>
+                                        </RFTextWidget>
+                                    </widgets>
+                                </RFLayoutWidget>
+                            </widgets>
+                        </RFRepeaterWidget>
+                        <RFImageWidget>
+                            <property name="bottom-margin">40</property>
+                            <property name="vertical-alignment">bottom</property>
+                            <property name="image">resources/line_shadow_flipped.png</property>
+                            <property name="layout-type">float</property>
+                            <property name="width">100%</property>
+                            <property name="height">5</property>
+                            <property name="allow-stretch">YES</property>
+                        </RFImageWidget>
+                        <RFButtonWidget>
+                            <actions>
+                                <modify on="touch">
+                                    <property name="widget-id">recentsearch</property>
+                                    <property name="duration">0.3</property>
+                                    <values>
+                                        <property name="top-position">-100%</property>
+                                    </values>
+                                </modify>
+                                <set on="touch">
+                                    <property name="save-locally">YES</property>
+                                    <values>
+                                        <property name="recentItems">[session:emptyvalue]</property>
+                                    </values>
+                                </set>
+                                <refresh on="touch">
+                                    <property name="id">recentitem</property>
+                                    <property name="widget-id">searchrepeater</property>
+                                    <property name="widget-id">searchrepeatertext</property>
+                                </refresh>
+                            </actions>
+                            <property name="font">HelveticaNeue-Bold:15</property>
+                            <property name="text">Clear</property>
+                            <property name="style">glossy</property>
+                            <property name="width">60</property>
+                            <property name="height">30</property>
+                            <property name="left-margin">5</property>
+                            <property name="bottom-margin">5</property>
+                            <property name="horizontal-alignment">left</property>
+                            <property name="vertical-alignment">bottom</property>
+                            <property name="layout-type">float</property>
+                            <property name="background-color">#990000</property>
+                        </RFButtonWidget>
+                        <RFButtonWidget>
+                            <actions>
+                                <modify on="touch">
+                                    <property name="widget-id">recentsearch</property>
+                                    <property name="duration">0.3</property>
+                                    <values>
+                                        <property name="top-position">-100%</property>
+                                    </values>
+                                </modify>
+                                <refresh on="touch">
+                                    <property name="id">recentitem</property>
+                                    <property name="widget-id">searchrepeater</property>
+                                    <property name="widget-id">searchrepeatertext</property>
+                                </refresh>
+                            </actions>
+                            <property name="font">HelveticaNeue-Bold:15</property>
+                            <property name="text">Done</property>
+                            <property name="style">glossy</property>
+                            <property name="width">60</property>
+                            <property name="height">30</property>
+                            <property name="right-margin">5</property>
+                            <property name="bottom-margin">5</property>
+                            <property name="horizontal-alignment">right</property>
+                            <property name="vertical-alignment">bottom</property>
+                            <property name="layout-type">float</property>
+                            <property name="background-color">#333399</property>
+                        </RFButtonWidget>
+                    </widgets>
+                </RFLayoutWidget>
+            </widgets>
+        </view>
+    </views>
 </rfapp>

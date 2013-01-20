@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<rfapp id="XXX-XXXX" appkey="XXXXXXXXXXXXXXXXXX" appurl="">
+<rfapp id="xxx-xxxx" appkey="xxxxxxxxxxxx" appurl="">
   <property name="use-standard-tab-bar">YES</property>
   <property name="enable-location-services">YES</property>
   <property name="show-status-bar">YES</property>
@@ -16,15 +16,15 @@
           <property name="hide-activity-indicator">YES</property>
           <property name="auto-load">YES</property>
           <property name="auth-method">HTTP</property>
-          <property name="data-location">https://maps.googleapis.com/maps/api/place/search/xml</property>
+          <property name="data-location">https://maps.googleapis.com/maps/api/place/textsearch/xml</property>
           <property name="method">GET</property>
           <submit_values>
             <property name="location">[app:user-lat],[app:user-lon]</property>
-            <property name="radius" if="'[session:radiusvalue]'==''">200000</property>
+            <property name="radius" if="'[session:radiusvalue]'==''">50000</property>
             <property name="radius" if="'[session:radiusvalue]'!=''">[session:radiusvalue]000</property>
-            <property name="name">Airport</property>
+            <property name="query">Airport</property>
             <property name="sensor">true</property>
-            <property name="key">XXXXXXXXXXXXXX</property>
+            <property name="key">x-x</property>
           </submit_values>
           <actions>
             <alert on="failed">
@@ -67,6 +67,7 @@
                 <RFImageWidget>
                   <actions>
                     <navigate on="touch">
+                      <property name="navigation-transition">flip-left</property>
                       <property name="navigation-stack-type">replace</property>
                       <property name="to">dir.xml</property>
                     </navigate>
@@ -104,6 +105,7 @@
                   </values>
                 </set>
                 <navigate on="touch">
+                      <property name="navigation-transition">flip-left</property>
                   <property name="to">dir.xml</property>
                   <property name="navigation-stack-type">replace</property>
                 </navigate>
@@ -301,6 +303,7 @@
                 <RFImageWidget id="directory">
                   <actions>
                     <navigate on="touch">
+                      <property name="navigation-transition">flip-left</property>
                       <property name="navigation-stack-type">replace</property>
                       <property name="to">dir.xml</property>
                     </navigate>
